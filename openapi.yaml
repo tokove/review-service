@@ -1,0 +1,158 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: Review API
+    version: 0.0.1
+paths:
+    /v1/review:
+        post:
+            tags:
+                - Review
+            description: 创建评价
+            operationId: Review_CreateReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.CreateReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.CreateReviewReply'
+    /v1/review/audit:
+        post:
+            tags:
+                - Review
+            description: 审核评价
+            operationId: Review_AuditReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.AuditReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.AuditReviewReply'
+    /v1/review/{reviewId}:
+        get:
+            tags:
+                - Review
+            description: 获取评价
+            operationId: Review_GetReview
+            parameters:
+                - name: reviewId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.GetReviewReply'
+components:
+    schemas:
+        api.review.v1.AuditReviewReply:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+            description: 审核评价的回复
+        api.review.v1.AuditReviewRequest:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                opUser:
+                    type: string
+                opReason:
+                    type: string
+                opRemarks:
+                    type: string
+            description: 审核评价的参数
+        api.review.v1.CreateReviewReply:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+            description: 创建评价的回复
+        api.review.v1.CreateReviewRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+                orderId:
+                    type: string
+                score:
+                    type: integer
+                    format: int32
+                serviceScore:
+                    type: integer
+                    format: int32
+                expressScore:
+                    type: integer
+                    format: int32
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+                anonymous:
+                    type: boolean
+            description: 创建评价的参数
+        api.review.v1.GetReviewReply:
+            type: object
+            properties:
+                data:
+                    $ref: '#/components/schemas/api.review.v1.ReviewInfo'
+            description: 获取评价的回复
+        api.review.v1.ReviewInfo:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                userId:
+                    type: string
+                orderId:
+                    type: string
+                score:
+                    type: integer
+                    format: int32
+                serviceScore:
+                    type: integer
+                    format: int32
+                expressScore:
+                    type: integer
+                    format: int32
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+            description: 评价信息
+tags:
+    - name: Review
