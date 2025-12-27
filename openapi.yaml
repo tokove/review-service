@@ -44,6 +44,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.review.v1.AuditReviewReply'
+    /v1/review/reply:
+        post:
+            tags:
+                - Review
+            description: 回复评价
+            operationId: Review_ReplyReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.ReplyReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.ReplyReviewReply'
     /v1/review/{reviewId}:
         get:
             tags:
@@ -126,6 +145,26 @@ components:
                 data:
                     $ref: '#/components/schemas/api.review.v1.ReviewInfo'
             description: 获取评价的回复
+        api.review.v1.ReplyReviewReply:
+            type: object
+            properties:
+                replyId:
+                    type: string
+            description: 回复评论的回复
+        api.review.v1.ReplyReviewRequest:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                storeId:
+                    type: string
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+            description: 回复评论的参数
         api.review.v1.ReviewInfo:
             type: object
             properties:

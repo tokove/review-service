@@ -2,8 +2,10 @@ package data
 
 import (
 	"context"
+	v1 "review-service/api/review/v1"
 	"review-service/internal/biz"
 	"review-service/internal/data/model"
+	"review-service/internal/data/query"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -49,4 +51,39 @@ func (r *reviewRepo) AuditReview(ctx context.Context, param *biz.AuditParam) err
 			"op_remarks": param.OpRemarks,
 		})
 	return err
+}
+
+// SaveReply 将回复存入数据库
+func (r *reviewRepo) SaveReply(ctx context.Context, reply *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error) {
+	// 数据校验（已回复的不能再回复）
+	review, err := r.data.query.ReviewInfo.WithContext(ctx).
+		Where(r.data.query.ReviewInfo.ReviewID.Eq(reply.ReviewID)).First()
+	if err != nil {
+		return nil, err
+	}
+	if review.HasReply == 1 {
+		return nil, v1.ErrorOrderReplied("该评价已回复")
+	}
+	// 水平越权（商家只能回复自己店铺的评论）
+	if review.StoreID != reply.StoreID {
+		return nil, v1.ErrorStorePermissionDenied("水平越权")
+	}
+	// 存储到数据库（评价表和评价回复表）
+	// 事务操作
+	err = r.data.query.Transaction(func(tx *query.Query) error {
+		// 评价表更新
+		if _, err := tx.ReviewInfo.WithContext(ctx).
+			Where(tx.ReviewInfo.ReviewID.Eq(review.ReviewID)).
+			Update(tx.ReviewInfo.HasReply, 1); err != nil {
+			r.log.WithContext(ctx).Errorf("update review failed, err:%v", err)
+			return err
+		}
+		// 回复表保存
+		if err := tx.ReviewReplyInfo.WithContext(ctx).Save(reply); err != nil {
+			r.log.WithContext(ctx).Errorf("save reply failed, err:%v", err)
+			return err
+		}
+		return nil
+	})
+	return reply, err
 }

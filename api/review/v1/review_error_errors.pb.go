@@ -42,9 +42,33 @@ func IsOrderReviewed(err error) bool {
 		return false
 	}
 	e := errors.FromError(err)
-	return e.Reason == ErrorReason_ORDER_REVIEWED.String() && e.Code == 400
+	return e.Reason == ErrorReason_ORDER_REVIEWED.String() && e.Code == 409
 }
 
 func ErrorOrderReviewed(format string, args ...interface{}) *errors.Error {
-	return errors.New(400, ErrorReason_ORDER_REVIEWED.String(), fmt.Sprintf(format, args...))
+	return errors.New(409, ErrorReason_ORDER_REVIEWED.String(), fmt.Sprintf(format, args...))
+}
+
+func IsOrderReplied(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_ORDER_REPLIED.String() && e.Code == 409
+}
+
+func ErrorOrderReplied(format string, args ...interface{}) *errors.Error {
+	return errors.New(409, ErrorReason_ORDER_REPLIED.String(), fmt.Sprintf(format, args...))
+}
+
+func IsStorePermissionDenied(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == ErrorReason_STORE_PERMISSION_DENIED.String() && e.Code == 403
+}
+
+func ErrorStorePermissionDenied(format string, args ...interface{}) *errors.Error {
+	return errors.New(403, ErrorReason_STORE_PERMISSION_DENIED.String(), fmt.Sprintf(format, args...))
 }

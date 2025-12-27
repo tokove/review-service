@@ -16,5 +16,7 @@ enum ErrorReason {
   USER_NOT_FOUND = 0 [(errors.code) = 401];
   DB_FAILED = 1 [(errors.code) = 500];
 
-  ORDER_REVIEWED = 100 [(errors.code) = 400];
+  ORDER_REVIEWED = 100 [(errors.code) = 409];
+  ORDER_REPLIED = 101 [(errors.code) = 409];
+  STORE_PERMISSION_DENIED = 102 [(errors.code) = 403];
 }

@@ -36,3 +36,6 @@ bin/
 .vscode/
 .idea/
 *.swp
+
+# Ignore generated validate files for errors proto
+api/review/v1/review_error.pb.validate.go

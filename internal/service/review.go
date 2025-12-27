@@ -29,14 +29,14 @@ func (s *ReviewService) CreateReview(ctx context.Context, req *pb.CreateReviewRe
 		anonymous = 1
 	}
 	review, err := s.uc.CreateReview(ctx, &model.ReviewInfo{
-		UserID:       req.UserId,
-		OrderID:      req.OrderId,
-		Score:        req.Score,
-		ServiceScore: req.ServiceScore,
-		ExpressScore: req.ExpressScore,
-		Content:      req.Content,
-		PicInfo:      req.PicInfo,
-		VideoInfo:    req.VideoInfo,
+		UserID:       req.GetUserId(),
+		OrderID:      req.GetOrderId(),
+		Score:        req.GetScore(),
+		ServiceScore: req.GetServiceScore(),
+		ExpressScore: req.GetExpressScore(),
+		Content:      req.GetContent(),
+		PicInfo:      req.GetPicInfo(),
+		VideoInfo:    req.GetVideoInfo(),
 		Anonymous:    anonymous,
 		Status:       0,
 	})
@@ -50,7 +50,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, req *pb.CreateReviewRe
 // GetReview 获取评价
 func (s *ReviewService) GetReview(ctx context.Context, req *pb.GetReviewRequest) (*pb.GetReviewReply, error) {
 	fmt.Printf("[service] GetReview, req:%v", req)
-	review, err := s.uc.GetReview(ctx, req.ReviewId)
+	review, err := s.uc.GetReview(ctx, req.GetReviewId())
 	if err != nil {
 		return nil, err
 	}
@@ -71,13 +71,13 @@ func (s *ReviewService) GetReview(ctx context.Context, req *pb.GetReviewRequest)
 
 // AuditReview 审核评价
 func (s *ReviewService) AuditReview(ctx context.Context, req *pb.AuditReviewRequest) (*pb.AuditReviewReply, error) {
-	fmt.Printf("[service] GetReview, req:%v", req)
+	fmt.Printf("[service] AuditReview, req:%v", req)
 	err := s.uc.AuditReview(ctx, &biz.AuditParam{
-		ReviewID:  req.ReviewId,
-		Status:    req.Status,
-		OpUser:    req.OpUser,
-		OpReason:  req.OpReason,
-		OpRemarks: *req.OpRemarks,
+		ReviewID:  req.GetReviewId(),
+		Status:    req.GetStatus(),
+		OpUser:    req.GetOpUser(),
+		OpReason:  req.GetOpReason(),
+		OpRemarks: req.GetOpRemarks(),
 	})
 	if err != nil {
 		return nil, err
@@ -86,4 +86,20 @@ func (s *ReviewService) AuditReview(ctx context.Context, req *pb.AuditReviewRequ
 		ReviewId: req.ReviewId,
 		Status:   req.Status,
 	}, nil
+}
+
+// ReplyReview 回复评价
+func (s *ReviewService) ReplyReview(ctx context.Context, req *pb.ReplyReviewRequest) (*pb.ReplyReviewReply, error) {
+	fmt.Printf("[service] ReplyReview, req:%v", req)
+	reply, err := s.uc.CreateReply(ctx, &biz.ReplyParam{
+		ReviewID:  req.GetReviewId(),
+		StoreID:   req.GetStoreId(),
+		Content:   req.GetContent(),
+		PicInfo:   req.GetPicInfo(),
+		VideoInfo: req.GetVideoInfo(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ReplyReviewReply{ReplyId: reply.ReplyID}, nil
 }
