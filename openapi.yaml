@@ -3,9 +3,28 @@
 
 openapi: 3.0.3
 info:
-    title: Review API
+    title: ""
     version: 0.0.1
 paths:
+    /business/v1/review/reply:
+        post:
+            tags:
+                - Business
+            description: 商家回复用户评价
+            operationId: Business_ReplyReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.business.v1.ReplyReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.business.v1.ReplyReviewReply'
     /v1/review:
         post:
             tags:
@@ -82,8 +101,69 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.review.v1.GetReviewReply'
+    v1/review/appeal:
+        post:
+            tags:
+                - Review
+            description: 申诉评价
+            operationId: Review_AppealReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.AppealReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.AppealReviewReply'
 components:
     schemas:
+        api.business.v1.ReplyReviewReply:
+            type: object
+            properties:
+                replyId:
+                    type: string
+            description: 回复评论的回复
+        api.business.v1.ReplyReviewRequest:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                storeId:
+                    type: string
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+            description: 回复评论的参数
+        api.review.v1.AppealReviewReply:
+            type: object
+            properties:
+                appealId:
+                    type: string
+            description: 申诉评论的回复
+        api.review.v1.AppealReviewRequest:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                storeId:
+                    type: string
+                reason:
+                    type: string
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+            description: 申诉评论的参数
         api.review.v1.AuditReviewReply:
             type: object
             properties:
@@ -194,4 +274,6 @@ components:
                     format: int32
             description: 评价信息
 tags:
+    - name: Business
+      description: 商家端服务
     - name: Review

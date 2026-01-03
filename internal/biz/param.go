@@ -17,3 +17,13 @@ type ReplyParam struct {
 	PicInfo   string
 	VideoInfo string
 }
+
+// 商家端申诉评价的参数
+type AppealParam struct {
+	ReviewID  int64
+	StoreID   int64
+	Reason    string
+	Content   string
+	PicInfo   string
+	VideoInfo string
+}

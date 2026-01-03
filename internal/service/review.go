@@ -103,3 +103,20 @@ func (s *ReviewService) ReplyReview(ctx context.Context, req *pb.ReplyReviewRequ
 	}
 	return &pb.ReplyReviewReply{ReplyId: reply.ReplyID}, nil
 }
+
+// AppealReview 申诉评价
+func (s *ReviewService) AppealReview(ctx context.Context, req *pb.AppealReviewRequest) (*pb.AppealReviewReply, error) {
+	fmt.Printf("[service] AppealReview, req:%v", req)
+	ret, err := s.uc.AppealReview(ctx, &biz.AppealParam{
+		ReviewID:  req.GetReviewId(),
+		StoreID:   req.GetStoreId(),
+		Reason:    req.GetReason(),
+		Content:   req.GetContent(),
+		PicInfo:   req.GetPicInfo(),
+		VideoInfo: req.GetVideoInfo(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.AppealReviewReply{AppealId: ret.AppealID}, nil
+}
