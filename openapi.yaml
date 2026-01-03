@@ -101,6 +101,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.review.v1.GetReviewReply'
+    v1/appeal/audit:
+        post:
+            tags:
+                - Review
+            description: 审核申诉
+            operationId: Review_AuditAppeal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.AuditAppealRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.AuditAppealReply'
     v1/review/appeal:
         post:
             tags:
@@ -164,6 +183,27 @@ components:
                 videoInfo:
                     type: string
             description: 申诉评论的参数
+        api.review.v1.AuditAppealReply:
+            type: object
+            properties: {}
+            description: 审核申诉的回复
+        api.review.v1.AuditAppealRequest:
+            type: object
+            properties:
+                appealId:
+                    type: string
+                reviewId:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                opUser:
+                    type: string
+                opReason:
+                    type: string
+                opRemarks:
+                    type: string
+            description: 审核申诉的参数
         api.review.v1.AuditReviewReply:
             type: object
             properties:

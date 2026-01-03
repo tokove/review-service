@@ -120,3 +120,20 @@ func (s *ReviewService) AppealReview(ctx context.Context, req *pb.AppealReviewRe
 	}
 	return &pb.AppealReviewReply{AppealId: ret.AppealID}, nil
 }
+
+// AuditAppeal 审核申诉
+func (s *ReviewService) AuditAppeal(ctx context.Context, req *pb.AuditAppealRequest) (*pb.AuditAppealReply, error) {
+	fmt.Printf("[service] AuditAppeal, req:%v", req)
+	err := s.uc.AuditAppeal(ctx, &biz.AuditAppealParam{
+		AppealID:  req.GetAppealId(),
+		ReviewID:  req.GetReviewId(),
+		Status:    req.GetStatus(),
+		OpUser:    req.GetOpUser(),
+		OpReason:  req.GetOpReason(),
+		OpRemarks: req.GetOpRemarks(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.AuditAppealReply{}, nil
+}

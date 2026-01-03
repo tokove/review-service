@@ -17,6 +17,7 @@ type ReviewRepo interface {
 	AuditReview(context.Context, *AuditParam) error
 	SaveReply(context.Context, *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error)
 	AppealReview(context.Context, *AppealParam) (*model.ReviewAppealInfo, error)
+	AuditAppeal(context.Context, *AuditAppealParam) error
 }
 
 // ReviewUsecase is a Review usecase.
@@ -80,4 +81,10 @@ func (uc *ReviewUsecase) CreateReply(ctx context.Context, param *ReplyParam) (*m
 func (uc *ReviewUsecase) AppealReview(ctx context.Context, param *AppealParam) (*model.ReviewAppealInfo, error) {
 	uc.log.WithContext(ctx).Debugf("[biz] AuditReview, req:%v", param)
 	return uc.repo.AppealReview(ctx, param)
+}
+
+// AuditAppeal 审核申诉
+func (uc *ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditAppealParam) error {
+	uc.log.WithContext(ctx).Infof("[biz] AuditAppeal, param:%v", param)
+	return uc.repo.AuditAppeal(ctx, param)
 }

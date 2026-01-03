@@ -92,6 +92,7 @@ func (r *reviewRepo) SaveReply(ctx context.Context, reply *model.ReviewReplyInfo
 	return reply, err
 }
 
+// AppealReview 申诉评价
 func (r *reviewRepo) AppealReview(ctx context.Context, param *biz.AppealParam) (*model.ReviewAppealInfo, error) {
 	ret, err := r.data.query.ReviewAppealInfo.WithContext(ctx).
 		Where(
@@ -142,4 +143,28 @@ func (r *reviewRepo) AppealReview(ctx context.Context, param *biz.AppealParam) (
 		Create(appeal) // INSERT
 	r.log.Debugf("AppealReview, err:%v", err)
 	return appeal, err
+}
+
+// AuditAppeal 审核申诉
+func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealParam) error {
+	err := r.data.query.Transaction(func(tx *query.Query) error {
+		if _, err := tx.ReviewAppealInfo.WithContext(ctx).
+			Where(r.data.query.ReviewAppealInfo.AppealID.Eq(param.AppealID)).
+			Updates(map[string]interface{}{
+				"status":    param.Status,
+				"op_user":   param.OpUser,
+				"op_reason": param.OpReason,
+			}); err != nil {
+			return err
+		}
+		if param.Status == 20 {
+			if _, err := tx.ReviewInfo.WithContext(ctx).
+				Where(r.data.query.ReviewInfo.ReviewID.Eq(param.ReviewID)).
+				Update(tx.ReviewInfo.Status, 40); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return err
 }
