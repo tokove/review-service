@@ -101,6 +101,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.review.v1.GetReviewReply'
+    operation/v1/appeal/audit:
+        post:
+            tags:
+                - Operation
+            operationId: Operation_AuditAppeal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.operation.v1.AuditAppealRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.operation.v1.AuditAppealReply'
+    operation/v1/review/audit:
+        post:
+            tags:
+                - Operation
+            operationId: Operation_AuditReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.operation.v1.AuditReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.operation.v1.AuditReviewReply'
     v1/appeal/audit:
         post:
             tags:
@@ -161,6 +197,51 @@ components:
                 videoInfo:
                     type: string
             description: 回复评论的参数
+        api.operation.v1.AuditAppealReply:
+            type: object
+            properties: {}
+            description: 审核申诉的回复
+        api.operation.v1.AuditAppealRequest:
+            type: object
+            properties:
+                appealId:
+                    type: string
+                reviewId:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                opUser:
+                    type: string
+                opReason:
+                    type: string
+                opRemarks:
+                    type: string
+            description: 审核申诉的参数
+        api.operation.v1.AuditReviewReply:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+            description: 审核评价的回复
+        api.operation.v1.AuditReviewRequest:
+            type: object
+            properties:
+                reviewId:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                opUser:
+                    type: string
+                opReason:
+                    type: string
+                opRemarks:
+                    type: string
+            description: 审核评价的参数
         api.review.v1.AppealReviewReply:
             type: object
             properties:
@@ -316,4 +397,5 @@ components:
 tags:
     - name: Business
       description: 商家端服务
+    - name: Operation
     - name: Review
