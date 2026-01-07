@@ -151,9 +151,9 @@ func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealPara
 		if _, err := tx.ReviewAppealInfo.WithContext(ctx).
 			Where(r.data.query.ReviewAppealInfo.AppealID.Eq(param.AppealID)).
 			Updates(map[string]interface{}{
-				"status":    param.Status,
-				"op_user":   param.OpUser,
-				"op_reason": param.OpReason,
+				"status":  param.Status,
+				"op_user": param.OpUser,
+				"reason":  param.OpReason,
 			}); err != nil {
 			return err
 		}
