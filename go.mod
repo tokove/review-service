@@ -9,6 +9,7 @@ require (
 	github.com/go-kratos/kratos/v2 v2.9.2
 	github.com/google/wire v0.6.0
 	github.com/hashicorp/consul/api v1.33.0
+	github.com/redis/go-redis/v9 v9.19.0
 	go.uber.org/automaxprocs v1.5.1
 	google.golang.org/genproto/googleapis/api v0.0.0-20240528184218-531527333157
 	google.golang.org/grpc v1.65.0
@@ -19,6 +20,7 @@ require (
 
 require (
 	github.com/armon/go-metrics v0.4.1 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.9.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
@@ -33,6 +35,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a // indirect
 )
 
@@ -62,7 +65,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.29.0 // indirect
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sync v0.19.0
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect

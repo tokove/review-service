@@ -4,14 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	v1 "review-service/api/review/v1"
 	"review-service/internal/biz"
 	"review-service/internal/data/model"
 	"review-service/internal/data/query"
 	"review-service/pkg/snowflake"
+	"strconv"
+	"strings"
+	"time"
+
+	"golang.org/x/sync/singleflight"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -183,6 +190,11 @@ func (r *reviewRepo) ListReviewsByUserId(ctx context.Context, param *biz.ListRev
 
 // ListReviewsByStoreId 根据商户ID查询评价列表
 func (r *reviewRepo) ListReviewsByStoreId(ctx context.Context, param *biz.ListReviewsByStoreIdParam) ([]*biz.MyReviewInfo, error) {
+	// return r.getData1(ctx, param) // 直接插es
+	return r.getData2(ctx, param) // 先查redis，再查es
+}
+
+func (r *reviewRepo) getData1(ctx context.Context, param *biz.ListReviewsByStoreIdParam) ([]*biz.MyReviewInfo, error) {
 	resp, err := r.data.es.
 		Search().
 		Index("review").
@@ -214,4 +226,103 @@ func (r *reviewRepo) ListReviewsByStoreId(ctx context.Context, param *biz.ListRe
 		reviews = append(reviews, &review)
 	}
 	return reviews, nil
+}
+
+func (r *reviewRepo) getData2(ctx context.Context, param *biz.ListReviewsByStoreIdParam) ([]*biz.MyReviewInfo, error) {
+	// 1. 从 redis 中查
+	// 2. 从 es 中查
+	// 3. 利用 singleflight
+	key := fmt.Sprintf("review:%d:%d:%d", param.StoreID, param.Page, param.Size)
+	data, err := r.getDataBySingleFlight(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	hits := new(types.HitsMetadata)
+	if err := json.Unmarshal(data, hits); err != nil {
+		return nil, err
+	}
+	reviews := make([]*biz.MyReviewInfo, 0, hits.Total.Value)
+	for _, hit := range hits.Hits {
+		var review biz.MyReviewInfo
+		if err := json.Unmarshal(hit.Source_, &review); err != nil {
+			r.log.WithContext(ctx).Errorf("failed to unmarshal review info, err:%v", err)
+			continue
+		}
+		reviews = append(reviews, &review)
+	}
+	return reviews, nil
+}
+
+func (r *reviewRepo) getDataBySingleFlight(ctx context.Context, key string) ([]byte, error) {
+	var g singleflight.Group
+	data, err, _ := g.Do(key, func() (any, error) {
+		data, err := r.getDataFromCache(ctx, key)
+		r.log.Debugf("getDataBySingleFlight getDataFromCache, key: %v, data: %v, err: %v", key, data, err)
+		if err == nil {
+			r.log.Debugf("getDataFromCache hit, key: %v, value: %v", key, string(data))
+			return data, nil
+		}
+		if errors.Is(err, redis.Nil) {
+			data, err = r.getDataFromES(ctx, key)
+			if err == nil {
+				r.log.Debugf("setDataToCache, key: %v, data: %v", key, data)
+				return data, r.setDataToCache(ctx, key, data)
+			}
+		}
+		return nil, err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return data.([]byte), nil
+}
+
+func (r *reviewRepo) getDataFromCache(ctx context.Context, key string) ([]byte, error) {
+	r.log.Debugf("getDataFromCache key: %v", key)
+	return r.data.rdb.Get(ctx, key).Bytes()
+}
+
+func (r *reviewRepo) setDataToCache(ctx context.Context, key string, data []byte) error {
+	r.log.Debugf("setDataToCache key: %v", key)
+	return r.data.rdb.Set(ctx, key, data, 10*time.Second).Err()
+}
+
+// key: review:store_id:page:size
+func (r *reviewRepo) getDataFromES(ctx context.Context, key string) ([]byte, error) {
+	r.log.Debugf("getDataFromES key: %v", key)
+	parts := strings.Split(key, ":")
+	if len(parts) != 4 {
+		return nil, errors.New("invalid key format")
+	}
+	storeID := parts[1]
+	page, err := strconv.ParseInt(parts[2], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	size, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.data.es.
+		Search().
+		Index("review").
+		From(int((page - 1) * size)).
+		Size(int(size)).
+		Query(
+			&types.Query{
+				Bool: &types.BoolQuery{
+					Filter: []types.Query{
+						{
+							Term: map[string]types.TermQuery{
+								"store_id": {Value: storeID},
+							},
+						},
+					},
+				},
+			},
+		).Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(resp.Hits)
 }

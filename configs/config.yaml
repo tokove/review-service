@@ -10,7 +10,7 @@ data:
     driver: mysql
     source: root:root123456@tcp(127.0.0.1:13306)/db3?parseTime=True&loc=Local
   redis:
-    addr: 127.0.0.1:6379
+    addr: 127.0.0.1:16379
     read_timeout: 0.2s
     write_timeout: 0.2s
 snowflake:
