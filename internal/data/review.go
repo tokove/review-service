@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	v1 "review-service/api/review/v1"
 	"review-service/internal/biz"
@@ -9,6 +10,7 @@ import (
 	"review-service/internal/data/query"
 	"review-service/pkg/snowflake"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -167,4 +169,49 @@ func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealPara
 		return nil
 	})
 	return err
+}
+
+// ListReviewsByUserId 根据用户ID查询评价列表
+func (r *reviewRepo) ListReviewsByUserId(ctx context.Context, param *biz.ListReviewsByUserIdParam) ([]*model.ReviewInfo, error) {
+	return r.data.query.ReviewInfo.WithContext(ctx).
+		Where(r.data.query.ReviewInfo.UserID.Eq(param.UserID)).
+		Order(r.data.query.ReviewInfo.CreateAt.Desc()).
+		Offset(int((param.Page - 1) * param.Size)).
+		Limit(int(param.Size)).
+		Find()
+}
+
+// ListReviewsByStoreId 根据商户ID查询评价列表
+func (r *reviewRepo) ListReviewsByStoreId(ctx context.Context, param *biz.ListReviewsByStoreIdParam) ([]*biz.MyReviewInfo, error) {
+	resp, err := r.data.es.
+		Search().
+		Index("review").
+		From(int((param.Page - 1) * param.Size)).
+		Size(int(param.Size)).
+		Query(
+			&types.Query{
+				Bool: &types.BoolQuery{
+					Filter: []types.Query{
+						{
+							Term: map[string]types.TermQuery{
+								"store_id": {Value: param.StoreID},
+							},
+						},
+					},
+				},
+			},
+		).Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+	reviews := make([]*biz.MyReviewInfo, 0, resp.Hits.Total.Value)
+	for _, hit := range resp.Hits.Hits {
+		var review biz.MyReviewInfo
+		if err := json.Unmarshal(hit.Source_, &review); err != nil {
+			r.log.WithContext(ctx).Errorf("failed to unmarshal review info, err:%v", err)
+			continue
+		}
+		reviews = append(reviews, &review)
+	}
+	return reviews, nil
 }

@@ -137,3 +137,60 @@ func (s *ReviewService) AuditAppeal(ctx context.Context, req *pb.AuditAppealRequ
 	}
 	return &pb.AuditAppealReply{}, nil
 }
+
+// ListReviewsByUserId 根据用户ID查询评价列表
+func (s *ReviewService) ListReviewsByUserId(ctx context.Context, req *pb.ListReviewsByUserIdRequest) (*pb.ListReviewsByUserIdReply, error) {
+	fmt.Printf("[service] ListReviewsByUserId, req:%v", req)
+	reviews, err := s.uc.ListReviewsByUserId(ctx, &biz.ListReviewsByUserIdParam{
+		UserID: req.GetUserId(),
+		Page:   req.GetPage(),
+		Size:   req.GetSize(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var reviewInfos []*pb.ReviewInfo
+	for _, review := range reviews {
+		reviewInfos = append(reviewInfos, &pb.ReviewInfo{
+			UserId:       review.UserID,
+			OrderId:      review.OrderID,
+			Score:        review.Score,
+			ServiceScore: review.ServiceScore,
+			ExpressScore: review.ExpressScore,
+			Content:      review.Content,
+			PicInfo:      review.PicInfo,
+			VideoInfo:    review.VideoInfo,
+			Status:       0,
+		})
+	}
+	return &pb.ListReviewsByUserIdReply{List: reviewInfos}, nil
+}
+
+// ListReviewsByStoreId 根据商户ID查询评价列表
+func (s *ReviewService) ListReviewsByStoreId(ctx context.Context, req *pb.ListReviewsByStoreIdRequest) (*pb.ListReviewsByStoreIdReply, error) {
+	fmt.Printf("[service] ListReviewsByStoreId, req:%v", req)
+	res, err := s.uc.ListReviewsByStoreId(ctx, &biz.ListReviewsByStoreIdParam{
+		StoreID: req.GetStoreId(),
+		Page:    req.GetPage(),
+		Size:    req.GetSize(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	reviews := make([]*pb.ReviewInfo, 0, len(res))
+	for _, review := range res {
+		reviews = append(reviews, &pb.ReviewInfo{
+			ReviewId:     review.ReviewID,
+			UserId:       review.UserID,
+			OrderId:      review.OrderID,
+			Score:        review.Score,
+			ServiceScore: review.ServiceScore,
+			ExpressScore: review.ExpressScore,
+			Content:      review.Content,
+			PicInfo:      review.PicInfo,
+			VideoInfo:    review.VideoInfo,
+			Status:       review.Status,
+		})
+	}
+	return &pb.ListReviewsByStoreIdReply{List: reviews}, nil
+}

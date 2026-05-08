@@ -5,6 +5,8 @@ import (
 	v1 "review-service/api/review/v1"
 	"review-service/internal/data/model"
 	"review-service/pkg/snowflake"
+	"strings"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -18,6 +20,8 @@ type ReviewRepo interface {
 	SaveReply(context.Context, *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error)
 	AppealReview(context.Context, *AppealParam) (*model.ReviewAppealInfo, error)
 	AuditAppeal(context.Context, *AuditAppealParam) error
+	ListReviewsByUserId(context.Context, *ListReviewsByUserIdParam) ([]*model.ReviewInfo, error)
+	ListReviewsByStoreId(context.Context, *ListReviewsByStoreIdParam) ([]*MyReviewInfo, error)
 }
 
 // ReviewUsecase is a Review usecase.
@@ -87,4 +91,51 @@ func (uc *ReviewUsecase) AppealReview(ctx context.Context, param *AppealParam) (
 func (uc *ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditAppealParam) error {
 	uc.log.WithContext(ctx).Infof("[biz] AuditAppeal, param:%v", param)
 	return uc.repo.AuditAppeal(ctx, param)
+}
+
+// ListReviewsByUserId 根据用户ID查询评价列表
+func (uc *ReviewUsecase) ListReviewsByUserId(ctx context.Context, param *ListReviewsByUserIdParam) ([]*model.ReviewInfo, error) {
+	uc.log.WithContext(ctx).Infof("[biz] ListReviewsByUserId, param:%v", param)
+	return uc.repo.ListReviewsByUserId(ctx, param)
+}
+
+// ListReviewsByStoreId 根据商户ID查询评价列表
+func (uc *ReviewUsecase) ListReviewsByStoreId(ctx context.Context, param *ListReviewsByStoreIdParam) ([]*MyReviewInfo, error) {
+	uc.log.WithContext(ctx).Infof("[biz] ListReviewsByStoreId, param:%v", param)
+	return uc.repo.ListReviewsByStoreId(ctx, param)
+}
+
+type MyReviewInfo struct {
+	*model.ReviewInfo
+	CreateAt     MyTime `json:"create_at"`
+	UpdateAt     MyTime `json:"update_at"`
+	Version      int32  `json:"version,string"`
+	Score        int32  `json:"score,string"`
+	ServiceScore int32  `json:"service_score,string"`
+	ExpressScore int32  `json:"express_score,string"`
+	HasMedia     int32  `json:"has_media,string"`
+	Anonymous    int32  `json:"anonymous,string"`
+	Status       int32  `json:"status,string"`
+	IsDefault    int32  `json:"is_default,string"`
+	HasReply     int32  `json:"has_reply,string"`
+	ID           int64  `json:"id,string"`
+	ReviewID     int64  `json:"review_id,string"`
+	OrderID      int64  `json:"order_id,string"`
+	SkuID        int64  `json:"sku_id,string"`
+	SpuID        int64  `json:"spu_id,string"`
+	StoreID      int64  `json:"store_id,string"`
+	UserID       int64  `json:"user_id,string"`
+}
+
+type MyTime time.Time
+
+// 自动调用
+func (t *MyTime) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(string(data), `"`)
+	tmp, err := time.Parse(time.DateTime, s)
+	if err != nil {
+		return err
+	}
+	*t = MyTime(tmp)
+	return nil
 }

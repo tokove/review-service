@@ -28,6 +28,7 @@ type AppealParam struct {
 	VideoInfo string
 }
 
+// 运营端审核申诉评价的参数
 type AuditAppealParam struct {
 	AppealID  int64
 	ReviewID  int64
@@ -35,4 +36,18 @@ type AuditAppealParam struct {
 	OpUser    string
 	OpReason  string
 	OpRemarks string
+}
+
+// ListReviewsByUserIdParam 根据用户ID查询评价列表的参数
+type ListReviewsByUserIdParam struct {
+	UserID int64
+	Page   int32
+	Size   int32
+}
+
+// ListReviewsByStoreIdParam 根据商户ID查询评价列表的参数
+type ListReviewsByStoreIdParam struct {
+	StoreID int64
+	Page    int32
+	Size    int32
 }
